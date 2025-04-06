@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
   CheckIcon,
   AddIcon,
+  BookmarkIcon,
 } from '../components/icons';
 import {
   SectionHeader,
@@ -22,47 +23,65 @@ import {
   MoveBar,
   NewTodoButton,
 } from '../components';
+import { colors, spacing, typography, borderRadius, shadows } from '../design-system/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Core layout constants from Figma
-const SECTION_SPACING = 10; // Spacing between sections
-const TOP_HEADER_MARGIN = 60; // Fixed distance from top of screen to header
+// Core layout constants - updated from Figma
+const SECTION_SPACING = 8; // Spacing between sections (from Figma gap: 8px)
+const TOP_HEADER_MARGIN = 66; // Fixed distance from top of screen to header (from Figma padding: 66px 0px 0px)
 const HEADER_HEIGHT = 56; // Height of section headers
 const TOP_MIN_HEIGHT = TOP_HEADER_MARGIN + HEADER_HEIGHT; // Minimum height includes fixed header position
-const BOTTOM_MIN_HEIGHT = 80; // Minimum height for bottom section
-const CONTROL_PANEL_HEIGHT = 48; // Height of middle control section
-const HORIZONTAL_PADDING = 20; // Horizontal padding for sections
+const BOTTOM_MIN_HEIGHT = 110; // Minimum height for bottom section
+const HORIZONTAL_PADDING = 26; // Horizontal padding for sections (from Figma padding: 10px 26px)
 
 // Calculate available space
 const SAFE_AREA_TOP = 47; // iPhone status bar height
 const TOTAL_HEIGHT = SCREEN_HEIGHT - SAFE_AREA_TOP;
-const MAX_SECTION_HEIGHT = TOTAL_HEIGHT - BOTTOM_MIN_HEIGHT - CONTROL_PANEL_HEIGHT - (SECTION_SPACING * 2);
-const DEFAULT_TOP_HEIGHT = (TOTAL_HEIGHT - CONTROL_PANEL_HEIGHT - (SECTION_SPACING * 2)) * 0.6; // 60% in default state
-const DEFAULT_BOTTOM_HEIGHT = (TOTAL_HEIGHT - CONTROL_PANEL_HEIGHT - (SECTION_SPACING * 2)) * 0.4; // 40% in default state
+const MAX_SECTION_HEIGHT = TOTAL_HEIGHT - BOTTOM_MIN_HEIGHT - (12 * 2); // 12px spacing between sections
+const DEFAULT_TOP_HEIGHT = (TOTAL_HEIGHT - (12 * 2)) * 0.6; // 60% in default state
+const DEFAULT_BOTTOM_HEIGHT = (TOTAL_HEIGHT - (12 * 2)) * 0.4; // 40% in default state
 
 const HomeScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const newTodosButtonRef = useRef<View>(null);
+  const controlPanelRef = useRef<View>(null);
+  const [controlPanelHeight, setControlPanelHeight] = useState(0);
 
   // Animation values
   const topSectionHeight = useRef(new Animated.Value(DEFAULT_TOP_HEIGHT)).current;
-  const controlPanelY = useRef(new Animated.Value(DEFAULT_TOP_HEIGHT)).current;
   const dragStartY = useRef(0);
-  const lastControlPanelY = useRef(DEFAULT_TOP_HEIGHT);
+  const lastTopSectionHeight = useRef(DEFAULT_TOP_HEIGHT);
 
-  // Track current control panel position
+  // Track current top section height
   useEffect(() => {
-    const id = controlPanelY.addListener(({ value }) => {
-      lastControlPanelY.current = value;
+    const id = topSectionHeight.addListener(({ value }) => {
+      lastTopSectionHeight.current = value;
     });
-    return () => controlPanelY.removeListener(id);
+    return () => topSectionHeight.removeListener(id);
   }, []);
 
-  // Calculate bottom section height based on control panel position
-  const bottomSectionHeight = controlPanelY.interpolate({
+  // Measure control panel height after rendering
+  useEffect(() => {
+    if (controlPanelRef.current) {
+      setTimeout(() => {
+        // @ts-ignore - measure exists on View
+        controlPanelRef.current.measure((x, y, width, height, pageX, pageY) => {
+          if (height > 0) {
+            setControlPanelHeight(height);
+          }
+        });
+      }, 100); // Small delay to ensure rendering is complete
+    }
+  }, []);
+
+  // Calculate bottom section height based on top section height
+  const bottomSectionHeight = topSectionHeight.interpolate({
     inputRange: [TOP_MIN_HEIGHT, MAX_SECTION_HEIGHT],
-    outputRange: [TOTAL_HEIGHT - TOP_MIN_HEIGHT - CONTROL_PANEL_HEIGHT - (SECTION_SPACING * 2), BOTTOM_MIN_HEIGHT],
+    outputRange: [
+      TOTAL_HEIGHT - TOP_MIN_HEIGHT - (12 * 2), 
+      BOTTOM_MIN_HEIGHT
+    ],
     extrapolate: 'clamp',
   });
 
@@ -90,7 +109,7 @@ const HomeScreen: React.FC = () => {
       onMoveShouldSetPanResponder: () => true,
 
       onPanResponderGrant: () => {
-        dragStartY.current = lastControlPanelY.current;
+        dragStartY.current = lastTopSectionHeight.current;
       },
 
       onPanResponderMove: (_, { dy }) => {
@@ -99,7 +118,6 @@ const HomeScreen: React.FC = () => {
           Math.min(MAX_SECTION_HEIGHT, dragStartY.current + dy)
         );
         
-        controlPanelY.setValue(newY);
         topSectionHeight.setValue(newY);
       },
 
@@ -111,46 +129,76 @@ const HomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       
-      {/* Top Todos Section */}
-      <Animated.View style={[styles.section, styles.topSection, { height: topSectionHeight }]}>
-        {/* Fixed Header */}
-        <View style={[styles.headerContainer]}>
-          <View style={[styles.header, styles.fixedHeader]}>
-            <SectionHeader title="Todos" onMorePress={() => console.log('More todos')} />
-          </View>
+      {/* Top To-Do Section */}
+      <Animated.View style={[
+        styles.section, 
+        styles.topSection, 
+        { 
+          height: topSectionHeight,
+          paddingTop: insets.top + TOP_HEADER_MARGIN
+        }
+      ]}>
+        {/* Fixed To-Do Header */}
+        <View style={[
+          styles.todoHeader,
+          { top: insets.top + (TOP_HEADER_MARGIN - HEADER_HEIGHT) }
+        ]}>
+          <SectionHeader title="Todos" onMorePress={() => console.log('More todos')} />
         </View>
 
-        {/* Scrollable Content Area */}
-        <View style={[styles.contentWrapper]}>
+        {/* Action Items Area */}
+        <View style={styles.actionItemsContainer}>
           <ScrollView 
-            style={styles.content}
-            contentContainerStyle={styles.todoContent}
+            style={styles.actionItemsScroll}
+            contentContainerStyle={styles.actionItemsContent}
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyStateText}>No Todos</Text>
-            </View>
           </ScrollView>
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>No Todos</Text>
+          </View>
         </View>
       </Animated.View>
 
       {/* Control Panel */}
       <Animated.View 
-        style={[styles.controlPanel, { top: controlPanelY }]}
+        ref={controlPanelRef}
+        style={[styles.controlPanel, { 
+          top: Animated.add(topSectionHeight, 12) 
+        }]}
         {...panResponder.panHandlers}
       >
-        <View ref={newTodosButtonRef}>
-          <NewTodoButton onPress={() => console.log('New todo')} />
-        </View>
-        <View style={styles.moveBarContainer}>
-          <MoveBar />
+        {/* Two-column layout for control panel */}
+        <View style={styles.controlPanelLayout}>
+          {/* Left section - New Todo Button */}
+          <View style={styles.controlPanelLeft}>
+            <View ref={newTodosButtonRef} style={styles.newTodoButtonContainer}>
+              <NewTodoButton onPress={() => console.log('New todo')} />
+            </View>
+          </View>
+          
+          {/* Right section - Move Bar */}
+          <View style={styles.controlPanelRight}>
+            <View style={styles.moveBarWrapper}>
+              <MoveBar />
+            </View>
+          </View>
         </View>
       </Animated.View>
 
       {/* Bottom Lists Section */}
-      <Animated.View style={[styles.section, styles.bottomSection, { height: bottomSectionHeight }]}>
+      <Animated.View style={[
+        styles.section, 
+        styles.bottomSection, 
+        { 
+          top: Animated.add(
+            Animated.add(topSectionHeight, 12),
+            controlPanelHeight + 12
+          )
+        }
+      ]}>
         <View style={styles.header}>
           <SectionHeader title="Lists" onMorePress={() => console.log('More lists')} />
         </View>
@@ -163,7 +211,7 @@ const HomeScreen: React.FC = () => {
             <View style={styles.listCategoryHeader}>
               <Text style={styles.listCategoryTitle}>My Lists</Text>
               <TouchableOpacity onPress={() => console.log('Add list')}>
-                <AddIcon size={14} />
+                <AddIcon size={12} />
               </TouchableOpacity>
             </View>
             
@@ -171,9 +219,9 @@ const HomeScreen: React.FC = () => {
               <ListItem
                 title="Tasks"
                 count={0}
-                icon={<Text style={styles.listIcon}>📋</Text>}
-                iconBackgroundColor="#F97275"
-                onPress={() => console.log('Tasks pressed')}
+                icon={<BookmarkIcon size={12} color="#FFFFFF" />}
+                iconBackgroundColor={colors.secondary}
+                onPress={() => console.log('List pressed')}
               />
             </View>
           </View>
@@ -182,7 +230,8 @@ const HomeScreen: React.FC = () => {
             <ListItem
               title="Completed"
               count={0}
-              icon={<CheckIcon size={14} color="#000000" />}
+              icon={<CheckIcon size={20} color={colors.text} />}
+              iconBackgroundColor="#FFFFFF"
               onPress={() => console.log('Completed pressed')}
             />
           </View>
@@ -195,144 +244,164 @@ const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: colors.screenBackground,
   },
   section: {
     position: 'absolute',
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.xxl,
     overflow: 'hidden',
   },
   topSection: {
     top: 0,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    borderBottomLeftRadius: borderRadius.xxl,
+    borderBottomRightRadius: borderRadius.xxl,
+    ...shadows.md,
+    zIndex: 1,
   },
-  bottomSection: {
-    bottom: 0,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  header: {
+  todoHeader: {
     height: HEADER_HEIGHT,
     paddingHorizontal: HORIZONTAL_PADDING,
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+    backgroundColor: colors.background,
+    borderBottomWidth: 0,
     width: '100%',
-  },
-  headerContainer: {
     position: 'absolute',
-    top: TOP_HEADER_MARGIN,
     left: 0,
     right: 0,
     zIndex: 10,
-    backgroundColor: '#FFFFFF',
   },
-  fixedHeader: {
-    position: 'relative',
-  },
-  contentWrapper: {
+  actionItemsContainer: {
     flex: 1,
-    overflow: 'hidden',
-    paddingTop: TOP_HEADER_MARGIN + HEADER_HEIGHT, // Account for fixed header height
+    paddingTop: HEADER_HEIGHT,
+    justifyContent: 'center',
   },
-  content: {
+  actionItemsScroll: {
     flex: 1,
+    opacity: 0, // Hide scroll view when empty
   },
-  todoContent: {
+  actionItemsContent: {
     flexGrow: 1,
-    paddingHorizontal: HORIZONTAL_PADDING,
-    paddingTop: HEADER_HEIGHT + 20, // Add padding to account for fixed header
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     minHeight: '100%',
   },
-  listContent: {
-    flexGrow: 1,
-    paddingHorizontal: HORIZONTAL_PADDING,
-    paddingTop: 20,
-  },
   emptyState: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 40,
+    paddingTop: HEADER_HEIGHT,
   },
   emptyStateText: {
-    fontSize: 17,
-    color: '#AEAEB2',
+    fontFamily: typography.fontFamily.primary,
+    fontSize: 20,
     fontWeight: '400',
+    color: '#A1A1A1',
+    lineHeight: 20 * typography.lineHeights.relaxed,
+    textAlign: 'center',
   },
   controlPanel: {
     position: 'absolute',
     left: 0,
     right: 0,
-    height: CONTROL_PANEL_HEIGHT,
+    flexDirection: 'row',
+    paddingHorizontal: HORIZONTAL_PADDING,
+    paddingVertical: 0,
+    zIndex: 2,
+    justifyContent: 'flex-start',
+  },
+  controlPanelLayout: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: HORIZONTAL_PADDING,
-    zIndex: 1,
+    flex: 1,
   },
-  moveBarContainer: {
-    padding: 8,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+  controlPanelLeft: {
+    flex: 1,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  controlPanelRight: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newTodoButtonContainer: {
+    height: 40,
+  },
+  moveBarWrapper: {
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   listCategory: {
-    marginBottom: 24,
+    marginBottom: 32,
+    paddingHorizontal: 16,
   },
   listCategoryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    marginBottom: 12,
+    paddingHorizontal: 12,
+    marginBottom: 16,
   },
   listCategoryTitle: {
-    fontSize: 15,
+    fontFamily: typography.fontFamily.primary,
+    fontSize: 14,
     fontWeight: '500',
-    color: '#000000',
+    color: colors.text,
+    lineHeight: 14 * 1.714,
   },
   listGroup: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    borderRadius: 10,
     overflow: 'hidden',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    width: '100%',
+    alignSelf: 'stretch',
+    ...shadows.sm,
   },
   completedList: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderRadius: 10,
+    marginTop: 10,
+    marginBottom: spacing.md,
+    marginHorizontal: 16,
+    ...shadows.none
   },
   listIcon: {
-    fontSize: 16,
+    fontSize: 10,
+  },
+  bottomSection: {
+    bottom: 0,
+    borderTopLeftRadius: borderRadius.xxl,
+    borderTopRightRadius: borderRadius.xxl,
+    ...shadows.md,
+    paddingTop: 14,
+    paddingBottom: 24,
+  },
+  header: {
+    height: HEADER_HEIGHT,
+    paddingHorizontal: HORIZONTAL_PADDING,
+    justifyContent: 'center',
+    backgroundColor: colors.background,
+    borderBottomWidth: 0,
+    width: '100%',
+  },
+  content: {
+    flex: 1,
+  },
+  listContent: {
+    flexGrow: 1,
+    marginTop: 10,
+    paddingBottom: 16,
+    paddingTop: 10,
   },
 });
 

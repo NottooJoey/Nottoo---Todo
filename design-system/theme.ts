@@ -3,7 +3,7 @@
 export const colors = {
   primary: '#9A44F8', // Purple CTA button
   secondary: '#F97275', // Red list icon
-  background: '#FFFFFF',
+  background: '#F7F7F5',  // Updated to match Figma background color
   screenBackground: '#020202', // Black background
   text: '#020202', // Nearly black text
   textSecondary: '#A1A1A1', // Gray text (No Todos)

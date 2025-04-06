@@ -8,23 +8,23 @@ interface CheckIconProps {
 }
 
 export const CheckIcon: React.FC<CheckIconProps> = ({
-  size = 20,
-  color = '#020202',
+  size = 25,
+  color = '#FFFFFF',
 }) => {
   return (
     <View style={{ width: size, height: size }}>
-      <Svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <Svg width={size} height={size} viewBox="0 0 16 16" fill="none">
         <Circle 
-          cx={10} 
-          cy={10} 
-          r={9} 
+          cx={8} 
+          cy={8} 
+          r={7} 
           stroke={color} 
-          strokeWidth={1.67} 
+          strokeWidth={1.5} 
         />
         <Path 
-          d="M6.5 10.5L8.5 12.5L13.5 7.5" 
+          d="M5 8L7 10L11 6" 
           stroke={color} 
-          strokeWidth={1.67} 
+          strokeWidth={1.5} 
           strokeLinecap="round" 
           strokeLinejoin="round"
         />

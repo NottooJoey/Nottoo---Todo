@@ -22,12 +22,12 @@ const NewTodoButton: React.FC<NewTodoButtonProps> = ({ onPress }) => {
 
 const styles = StyleSheet.create({
   container: {
+    height: 40,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.primary,
     borderRadius: borderRadius.xxl,
-    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg + spacing.sm,
     gap: spacing.sm,
   },

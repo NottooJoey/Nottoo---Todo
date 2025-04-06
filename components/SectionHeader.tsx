@@ -16,7 +16,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ title, onMorePress }) => 
       </View>
       {onMorePress && (
         <TouchableOpacity onPress={onMorePress} style={styles.moreButton}>
-          <DotsIcon />
+          <DotsIcon size={20} color={colors.text} />
         </TouchableOpacity>
       )}
     </View>
@@ -28,26 +28,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    paddingVertical: 6,
   },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.xs,
+    paddingVertical: 6,
   },
   title: {
     fontFamily: typography.fontFamily.primary,
     fontSize: typography.fontSizes.xxl,
     fontWeight: '500',
     color: colors.text,
-    lineHeight: typography.fontSizes.xxl * typography.lineHeights.compact,
+    lineHeight: typography.fontSizes.xxl,
   },
   moreButton: {
-    padding: spacing.sm,
+    padding: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    width: 20,
+    height: 20,
+    aspectRatio: 1,
   },
 });
 
