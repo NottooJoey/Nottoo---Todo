@@ -9,6 +9,8 @@ interface ListItemProps {
   icon?: React.ReactNode;
   iconBackgroundColor?: string;
   onPress: () => void;
+  isSelected?: boolean;
+  isGrouped?: boolean;
 }
 
 const ListItem: React.FC<ListItemProps> = ({
@@ -17,10 +19,13 @@ const ListItem: React.FC<ListItemProps> = ({
   icon,
   iconBackgroundColor = colors.secondary,
   onPress,
+  isSelected = false,
+  isGrouped = false,
 }) => {
   const containerStyle = [
     styles.container,
-    title === 'Completed' && { ...shadows.none }
+    title === 'Completed' && { ...shadows.none },
+    isGrouped && styles.groupedContainer,
   ];
 
   return (
@@ -42,8 +47,12 @@ const ListItem: React.FC<ListItemProps> = ({
             </View>
           </View>
         ) : null}
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.count}>{count.toString()}</Text>
+        <Text style={styles.title}>
+          {title}
+        </Text>
+        <Text style={styles.count}>
+          {count.toString()}
+        </Text>
       </View>
       <ChevronRightIcon />
     </TouchableOpacity>
@@ -64,6 +73,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 48,
     ...shadows.sm,
+  },
+  groupedContainer: {
+    borderRadius: 0,
+    backgroundColor: 'transparent',
+    ...shadows.none,
+  },
+  containerSelected: {
+    backgroundColor: colors.primary,
   },
   content: {
     flexDirection: 'row',
@@ -92,6 +109,9 @@ const styles = StyleSheet.create({
     color: colors.text,
     lineHeight: typography.fontSizes.sm * typography.lineHeights.relaxed,
   },
+  titleSelected: {
+    color: '#FFFFFF',
+  },
   count: {
     fontFamily: typography.fontFamily.primary,
     fontSize: typography.fontSizes.sm,
@@ -101,6 +121,9 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     width: 8,
     textAlign: 'center',
+  },
+  countSelected: {
+    color: 'rgba(255, 255, 255, 0.7)',
   },
 });
 
