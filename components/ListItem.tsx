@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ChevronRightIcon } from './icons';
+import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import { colors, typography, spacing, borderRadius, shadows } from '../design-system/theme';
 
 interface ListItemProps {

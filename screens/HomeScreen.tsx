@@ -9,6 +9,7 @@ import {
   PanResponder,
   ScrollView,
   Animated,
+  GestureResponderEvent,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,6 +32,7 @@ import { colors, spacing, typography, borderRadius, shadows } from '../design-sy
 import { useTodo, Todo } from '../context/TodoContext';
 import TodoEditScreen from './TodoEditScreen';
 import ListEditScreen from './ListEditScreen';
+import Svg, { Path } from 'react-native-svg';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -56,7 +58,7 @@ interface ListViewTitleProps {
   count: number;
 }
 
-const ListViewTitle = ({ icon, iconBackgroundColor, title, count }: ListViewTitleProps) => (
+const ListViewTitle: React.FC<ListViewTitleProps> = ({ icon, iconBackgroundColor, title, count }) => (
   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
     <View style={{
       width: 24,
@@ -389,12 +391,10 @@ const HomeScreen: React.FC = () => {
                       : <Text style={styles.listItemIcon}>{selectedListData.icon}</Text>
                   }
                   iconBackgroundColor={selectedListForView === 'Completed' ? 'transparent' : selectedListData.color}
-                  title={selectedListData.name}
-                  count={state.todos.filter(todo => 
-                    selectedListForView === 'Completed' 
-                      ? todo.completed 
-                      : (todo.listName === selectedListData.name && !todo.completed)
-                  ).length}
+                  title={selectedListForView || selectedListData.name}
+                  count={selectedListForView === 'Completed' 
+                    ? state.todos.filter(todo => todo.completed).length 
+                    : state.todos.filter(todo => todo.listName === selectedListForView).length}
                 />
 
                 <TouchableOpacity style={styles.moreButton}>
@@ -540,7 +540,6 @@ const HomeScreen: React.FC = () => {
       );
     }
   }
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
@@ -667,12 +666,10 @@ const HomeScreen: React.FC = () => {
                         : <Text style={styles.listItemIcon}>{selectedListData.icon}</Text>
                     }
                     iconBackgroundColor={selectedListForView === 'Completed' ? 'transparent' : selectedListData.color}
-                    title={selectedListData.name}
-                    count={state.todos.filter(todo => 
-                      selectedListForView === 'Completed' 
-                        ? todo.completed 
-                        : (todo.listName === selectedListData.name && !todo.completed)
-                    ).length}
+                    title={selectedListForView || selectedListData.name}
+                    count={selectedListForView === 'Completed' 
+                      ? state.todos.filter(todo => todo.completed).length 
+                      : state.todos.filter(todo => todo.listName === selectedListForView).length}
                   />
 
                   <TouchableOpacity style={styles.moreButton}>
@@ -799,27 +796,26 @@ const HomeScreen: React.FC = () => {
         ) : (
           // Lists Overview
           <>
-        <View style={styles.header}>
-          <SectionHeader title="Lists" onMorePress={() => console.log('More lists')} />
-        </View>
-        <ScrollView 
-          style={styles.content}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.listCategory}>
-            <View style={styles.listCategoryHeader}>
-              <Text style={styles.listCategoryTitle}>My Lists</Text>
-              <TouchableOpacity onPress={() => setIsListEditScreenVisible(true)}>
-                <AddIcon size={12} />
-              </TouchableOpacity>
+            <View style={styles.header}>
+              <SectionHeader title="Lists" onMorePress={() => console.log('More lists')} />
             </View>
-            
-            <View style={styles.listContainer}>
-              <View style={styles.listGroup}>
-                {state.lists.map((list, index) => (
-                  <React.Fragment key={list.name}>
+            <ScrollView 
+              style={styles.content}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.listCategory}>
+                <View style={styles.listCategoryHeader}>
+                  <Text style={styles.listCategoryTitle}>My Lists</Text>
+                  <TouchableOpacity onPress={() => setIsListEditScreenVisible(true)}>
+                    <AddIcon size={12} />
+                  </TouchableOpacity>
+                </View>
+                
+                <View style={styles.listGroup}>
+                  {state.lists.map(list => (
                     <ListItem
+                      key={`${list.name}-${list.color}`}
                       title={list.name}
                       count={state.todos.filter(todo => todo.listName === list.name && !todo.completed).length}
                       icon={list.icon === '📑' ? (
@@ -830,27 +826,22 @@ const HomeScreen: React.FC = () => {
                       iconBackgroundColor={list.color}
                       onPress={() => handleListPress(list.name)}
                       isSelected={selectedList === list.name}
-                      isGrouped={true}
                     />
-                    {index < state.lists.length - 1 && <View style={styles.listDivider} />}
-                  </React.Fragment>
-                ))}
+                  ))}
+                </View>
               </View>
-            </View>
-          </View>
 
-          <View style={styles.completedList}>
-            <ListItem
-              title="Completed"
-              count={state.todos.filter(todo => todo.completed).length}
-              icon={<CheckIcon size={20} color={colors.text} />}
-              iconBackgroundColor="#FFFFFF"
-              onPress={() => handleListPress('Completed')}
-              isSelected={selectedList === 'Completed'}
-              isGrouped={true}
-            />
-          </View>
-        </ScrollView>
+              <View style={styles.completedList}>
+                <ListItem
+                  title="Completed"
+                  count={state.todos.filter(todo => todo.completed).length}
+                  icon={<CheckIcon size={20} color={colors.text} />}
+                  iconBackgroundColor="#FFFFFF"
+                  onPress={() => handleListPress('Completed')}
+                  isSelected={selectedList === 'Completed'}
+                />
+              </View>
+            </ScrollView>
           </>
         )}
       </Animated.View>
@@ -1021,28 +1012,21 @@ const styles = StyleSheet.create({
     color: colors.text,
     lineHeight: 14 * 1.714,
   },
-  listContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: borderRadius.lg,
-    overflow: 'hidden',
-    ...shadows.sm,
-  },
   listGroup: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    overflow: 'hidden',
     width: '100%',
     alignSelf: 'stretch',
-  },
-  listDivider: {
-    height: 1,
-    backgroundColor: colors.divider,
-    marginLeft: spacing.md,
+    ...shadows.sm,
   },
   completedList: {
     backgroundColor: '#FFFFFF',
-    borderRadius: borderRadius.lg,
-    marginTop: spacing.lg,
+    borderRadius: 10,
+    marginTop: 10,
     marginBottom: spacing.md,
-    marginHorizontal: spacing.md,
-    ...shadows.none,
+    marginHorizontal: 16,
+    ...shadows.none
   },
   listItemIcon: {
     fontSize: 12,
