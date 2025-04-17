@@ -4,4 +4,5 @@ export { default as MoveBar } from './MoveBar';
 export { default as NewTodoButton } from './NewTodoButton';
 export { default as SectionHeader } from './SectionHeader';
 export { default as TodoItem } from './TodoItem';
-export { default as TodoCategory } from './TodoCategory'; 
+export { default as TodoCategory } from './TodoCategory';
+export { default as EmojiPicker } from './EmojiPicker'; 
