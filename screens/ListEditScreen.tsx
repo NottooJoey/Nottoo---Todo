@@ -21,7 +21,7 @@ import EmojiPicker from '../components/EmojiPicker';
 
 // Color palette from Figma - exact order for 6x2 grid
 const LIST_COLORS = [
-  '#F97275', '#FB923D', '#FECB14', '#4FDC83', '#39BCF9', '#C383FB', // First row
+  '#F97275', '#FB923D', '#FECB14', '#3CB371', '#39BCF9', '#C383FB', // First row
   '#5B6770', '#D9A69F', '#EA426A', '#008080', '#6A0DAD', '#808000', // Second row
 ];
 
