@@ -32,7 +32,7 @@ interface ListEditScreenProps {
 }
 
 const COLOR_OPTION_SIZE = 36; // Size of each color option
-const COLOR_OPTION_GAP = 20; // Gap between color options
+const COLOR_OPTION_GAP = 8; // Reduced gap between color options to match design
 
 const ListEditScreen: React.FC<ListEditScreenProps> = ({
   visible,
@@ -104,9 +104,7 @@ const ListEditScreen: React.FC<ListEditScreenProps> = ({
 
   const handleInputFocus = () => {
     setIsInputFocused(true);
-    if (showEmojiPicker) {
-      setShowEmojiPicker(false);
-    }
+    setShowEmojiPicker(false);
   };
 
   const handleInputBlur = () => {
@@ -126,7 +124,8 @@ const ListEditScreen: React.FC<ListEditScreenProps> = ({
       justifyContent: 'center',
       flexDirection: 'row',
       flexWrap: 'wrap',
-      width: '100%' as any, // Type assertion to fix linter error
+      width: '100%' as any,
+      paddingHorizontal: 4, // Add slight padding to maintain even spacing
     }
   });
 
@@ -163,14 +162,13 @@ const ListEditScreen: React.FC<ListEditScreenProps> = ({
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardView}
-          keyboardVerticalOffset={18}
+          keyboardVerticalOffset={10}
         >
           <View style={styles.modalWrapper}>
             <View style={[
               styles.modalFrame,
               { 
                 borderRadius: 16,
-                marginBottom: showEmojiPicker ? 18 : 0 // Add margin when emoji picker is shown
               }
             ]}>
               {/* Title Frame */}
@@ -240,11 +238,14 @@ const ListEditScreen: React.FC<ListEditScreenProps> = ({
           </View>
 
           {showEmojiPicker && (
-            <EmojiPicker
-              visible={showEmojiPicker}
-              onClose={() => setShowEmojiPicker(false)}
-              onEmojiSelect={handleEmojiSelect}
-            />
+            <View style={styles.keyboardSpacer}>
+              <View style={{ height: 10 }} />
+              <EmojiPicker
+                visible={showEmojiPicker}
+                onClose={() => setShowEmojiPicker(false)}
+                onEmojiSelect={handleEmojiSelect}
+              />
+            </View>
           )}
         </KeyboardAvoidingView>
       </View>
@@ -349,12 +350,12 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#C6C6C8',
     backgroundColor: '#FFFFFF',
-    padding: 16,
+    padding: 12, // Reduced padding to match design
   },
   colorOption: {
     width: COLOR_OPTION_SIZE,
     height: COLOR_OPTION_SIZE,
-    borderRadius: 10,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     margin: COLOR_OPTION_GAP / 2,
@@ -391,6 +392,9 @@ const styles = StyleSheet.create({
   iconEmoji: {
     fontSize: 12,
     textAlign: 'center',
+  },
+  keyboardSpacer: {
+    height: 280,
   },
 });
 

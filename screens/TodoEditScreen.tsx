@@ -18,6 +18,7 @@ import { colors, spacing, typography, borderRadius, shadows } from '../design-sy
 import { Feather } from '@expo/vector-icons';
 import ListSelectionModal from '../components/ListSelectionModal';
 import { useTodo, Todo } from '../context/TodoContext';
+import { BookmarkIcon } from '../components/icons';
 
 // Constants from Figma
 const INPUT_FRAME_HEIGHT = 713;
@@ -112,6 +113,15 @@ const TodoEditScreen: React.FC<TodoEditScreenProps> = ({
   const handleClose = () => {
     if (title.trim()) {
       onSubmit(title.trim(), notes.trim(), selectedList, isBacklog);
+      if (selectedTodo) {
+        dispatch({
+          type: 'UPDATE_TODO',
+          payload: {
+            ...selectedTodo,
+            completed: isCompleted
+          }
+        });
+      }
     }
     // Reset state
     setTitle('');
@@ -288,10 +298,27 @@ const TodoEditScreen: React.FC<TodoEditScreenProps> = ({
                   styles.listSelectionSeparator,
                   isListSelectionVisible && styles.listSelectionSeparatorActive
                 ]}>|</Text>
-                <Text style={[
-                  styles.listSelectionText,
-                  isListSelectionVisible && styles.listSelectionTextActive
-                ]}>{selectedList}</Text>
+                <View style={styles.listNameContainer}>
+                  {(() => {
+                    const selectedListData = state.lists.find(list => list.name === selectedList);
+                    if (selectedListData) {
+                      return (
+                        <View style={[styles.listIcon, { backgroundColor: selectedListData.color }]}>
+                          {selectedListData.icon === '📑' ? (
+                            <BookmarkIcon size={12} color="#FFFFFF" />
+                          ) : (
+                            <Text style={styles.listItemIcon}>{selectedListData.icon}</Text>
+                          )}
+                        </View>
+                      );
+                    }
+                    return null;
+                  })()}
+                  <Text style={[
+                    styles.listSelectionText,
+                    isListSelectionVisible && styles.listSelectionTextActive
+                  ]}>{selectedList}</Text>
+                </View>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -302,7 +329,7 @@ const TodoEditScreen: React.FC<TodoEditScreenProps> = ({
                 <Feather 
                   name={isCompleted ? "check-circle" : "circle"} 
                   size={20} 
-                  color={isCompleted ? colors.primary : "#C6C6C8"} 
+                  color="#C6C6C8" 
                 />
               </TouchableOpacity>
             </View>
@@ -413,9 +440,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#FFFFFF',
-    includeFontPadding: false,
+    lineHeight: 20,
+    textAlign: 'center',
     textAlignVertical: 'center',
-    height: 20,
   },
   listSelectionTextActive: {
     color: '#000000',
@@ -426,9 +453,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#FFFFFF',
     opacity: 0.5,
-    includeFontPadding: false,
+    lineHeight: 20,
+    textAlign: 'center',
     textAlignVertical: 'center',
-    height: 20,
   },
   listSelectionSeparatorActive: {
     color: '#000000',
@@ -465,6 +492,23 @@ const styles = StyleSheet.create({
   completedInput: {
     color: colors.textSecondary,
     textDecorationLine: 'line-through',
+  },
+  listNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  listIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  listItemIcon: {
+    fontSize: 12,
+    transform: [{ scale: 0.7 }],
   },
 });
 

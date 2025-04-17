@@ -37,7 +37,7 @@ const TodoItem: React.FC<TodoItemProps> = ({
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           {completed ? (
-            <Feather name="check-circle" size={20} color="#000" />
+            <Feather name="check-circle" size={20} color="#C6C6C8" />
           ) : (
             <View style={styles.checkboxOutline} />
           )}

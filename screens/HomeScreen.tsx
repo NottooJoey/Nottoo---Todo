@@ -813,7 +813,7 @@ const HomeScreen: React.FC = () => {
                 </View>
                 
                 <View style={styles.listGroup}>
-                  {state.lists.map(list => (
+                  {state.lists.map((list, index) => (
                     <ListItem
                       key={`${list.name}-${list.color}`}
                       title={list.name}
@@ -826,6 +826,8 @@ const HomeScreen: React.FC = () => {
                       iconBackgroundColor={list.color}
                       onPress={() => handleListPress(list.name)}
                       isSelected={selectedList === list.name}
+                      isFirst={index === 0}
+                      isLast={index === state.lists.length - 1}
                     />
                   ))}
                 </View>
